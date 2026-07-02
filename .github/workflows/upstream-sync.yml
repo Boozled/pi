@@ -1,7 +1,9 @@
 # Hält den Fork-main automatisch aktuell mit earendil-works/pi.
-# Läuft täglich + manuell über den "Run workflow"-Knopf (Actions-Tab).
-# --ff-only: schlägt sichtbar fehl, falls der Fork-main eigene Commits hätte
-# (sollte er nie — Arbeit passiert auf Branches).
+# Strategie: Rebase — dieser eine Workflow-Commit reitet immer oben auf
+# upstream/main mit, der Rest des Branches ist 1:1 Upstream. Force-push
+# auf den eigenen Fork-main ist dabei gewollt und sicher (niemand außer
+# diesem Workflow schreibt auf main; Arbeit passiert auf Feature-Branches).
+# Läuft täglich + manuell über den "Run workflow"-Knopf im Actions-Tab.
 name: Upstream-Sync
 on:
   schedule:
@@ -16,9 +18,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Fast-forward auf upstream/main
+      - name: Rebase auf upstream/main + Push
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote add upstream https://github.com/earendil-works/pi.git
           git fetch upstream main
-          git merge --ff-only upstream/main
-          git push origin main
+          git rebase upstream/main
+          git push --force-with-lease origin main
