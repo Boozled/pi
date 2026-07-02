@@ -1,0 +1,24 @@
+# Hält den Fork-main automatisch aktuell mit earendil-works/pi.
+# Läuft täglich + manuell über den "Run workflow"-Knopf (Actions-Tab).
+# --ff-only: schlägt sichtbar fehl, falls der Fork-main eigene Commits hätte
+# (sollte er nie — Arbeit passiert auf Branches).
+name: Upstream-Sync
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fast-forward auf upstream/main
+        run: |
+          git remote add upstream https://github.com/earendil-works/pi.git
+          git fetch upstream main
+          git merge --ff-only upstream/main
+          git push origin main
